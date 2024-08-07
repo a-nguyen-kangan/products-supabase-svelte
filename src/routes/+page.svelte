@@ -11,15 +11,15 @@
   let username: string = "";
 
   onMount(async () => {
-	let userStatus = await supabase.auth.getUser()
-	console.log(userStatus);
-	
-	if (userStatus.error) {
-		loginStatus = false;
-	} else {
-		username = userStatus.data.user.email!;
-		loginStatus = true;
-	}
+    let userStatus = await supabase.auth.getUser();
+    console.log(userStatus);
+
+    if (userStatus.error) {
+      loginStatus = false;
+    } else {
+      username = userStatus.data.user.email!;
+      loginStatus = true;
+    }
   });
 
   async function getProducts() {
@@ -31,7 +31,7 @@
       console.log(error);
       return error;
     } else {
-	  productList = data;
+      productList = data;
       return data;
     }
   }
@@ -46,7 +46,7 @@
       console.log(error);
       return error;
     } else {
-      	return data;
+      return data;
     }
   }
 
@@ -58,12 +58,12 @@
 
     if (error) {
       console.log(error);
-	  loginStatus = false;
-	  username = "";
+      loginStatus = false;
+      username = "";
       return error;
     } else {
-	  loginStatus = true;
-	  username = data.user.email!;
+      loginStatus = true;
+      username = data.user.email!;
       return data;
     }
   }
@@ -80,17 +80,36 @@
     console.log(res);
   }
 
+  async function handleGitHubButton() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+    });
+
+    if (error) {
+      console.log(error);
+      loginStatus = false;
+      return error;
+    }
+
+    if (data) {
+      console.log(data);
+      loginStatus = true;
+      console.log(supabase.auth);
+      return data;
+    }
+  }
+
   async function signOut() {
     const { error } = await supabase.auth.signOut();
-	loginStatus = false;
-	username = "";
-	
-	if (error) {
-	  console.log(error);
-	  return error;
-	} else {
-	  return "signed out";
-	}
+    loginStatus = false;
+    username = "";
+
+    if (error) {
+      console.log(error);
+      return error;
+    } else {
+      return "signed out";
+    }
   }
 </script>
 
@@ -109,6 +128,11 @@
       class="btn variant-filled"
       on:click={handleLoginButton}>login</button
     >
+    <button
+      type="button"
+      class="btn variant-filled"
+      on:click={handleGitHubButton}>GitHub login</button
+    >
     <button type="button" class="btn variant-filled" on:click={signOut}
       >signOut</button
     >
@@ -122,10 +146,10 @@
     >
   </div>
   <div id="products">
-	<ul>
-	{#each productList as product}
-		<li>{product.id} {product.name} {product.quantity} ${product.price}</li>
-	{/each}
-	</ul>
-	</div>
+    <ul>
+      {#each productList as product}
+        <li>{product.id} {product.name} {product.quantity} ${product.price}</li>
+      {/each}
+    </ul>
+  </div>
 </div>
