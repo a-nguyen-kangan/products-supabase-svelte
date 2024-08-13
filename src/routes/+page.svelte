@@ -2,6 +2,7 @@
   import supabase from "$lib/supabase";
   import { onMount } from "svelte";
   import type { Product } from "$lib/types";
+  import { getAllProducts, loginUser } from "$lib/supabase_helpers";
 
   let email: string = "";
   let password: string = "";
@@ -20,62 +21,20 @@
 		username = userStatus.data.user.email!;
 		loginStatus = true;
 	}
+
+	productList = await getAllProducts();
   });
 
-  async function getProducts() {
-    const { data, error } = await supabase
-      .from("Products_duplicate")
-      .select("*");
-
-    if (error) {
-      console.log(error);
-      return error;
-    } else {
-	  productList = data;
-      return data;
-    }
-  }
-
-  async function logInUser() {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: "person@people.com",
-      password: "abcd1234",
-    });
-
-    if (error) {
-      console.log(error);
-      return error;
-    } else {
-      	return data;
-    }
-  }
-
-  async function loginUser() {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      console.log(error);
-	  loginStatus = false;
-	  username = "";
-      return error;
-    } else {
-	  loginStatus = true;
-	  username = data.user.email!;
-      return data;
-    }
-  }
-
   async function handleLoginButton() {
-    let res = await loginUser();
+    let res = await loginUser(email, password);
 
-    console.log(res);
-  }
-
-  async function handleGetProductsButton() {
-    let res = await getProducts();
+	if (!res) {
+		alert("Incorrect login credentials");
+	} else {
+		loginStatus = true;
+		username = res.user.email!;
+		productList = await getAllProducts();
+	}
 
     console.log(res);
   }
@@ -87,14 +46,13 @@
 	
 	if (error) {
 	  console.log(error);
-	  return error;
-	} else {
-	  return "signed out";
 	}
+
+	productList = [];
   }
 </script>
 
-<div class="container justify-center items-center">
+<div class="container justify-center items-center w-screen" style="width:100%">
   <h1 class="text-2xl">Login {loginStatus} {username}</h1>
   <input type="text" class="border-2 border-gray-300 p-2" bind:value={email} />
   <input
@@ -114,18 +72,4 @@
     >
   </div>
   <br />
-  <div>
-    <button
-      type="button"
-      class="btn variant-filled"
-      on:click={handleGetProductsButton}>GetProducts</button
-    >
-  </div>
-  <div id="products">
-	<ul>
-	{#each productList as product}
-		<li>{product.id} {product.name} {product.quantity} ${product.price}</li>
-	{/each}
-	</ul>
-	</div>
 </div>
